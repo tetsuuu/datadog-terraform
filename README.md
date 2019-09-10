@@ -1,5 +1,8 @@
 # datadog-terraform
 
+Manage monitoring setting by Terraform.
+Easy to deploy && change setting.
+
 ## Directory Strategy
 
 ```
@@ -32,3 +35,16 @@ How to management users?
 2. Make dir for users.
 
 Have to be managed by common resource on which strategies.
+
+## Key management
+
+```hcl-terraform
+provider "datadog" {
+  api_key = "${var.datadog_api_key}"
+  app_key = "${var.datadog_app_key}"
+}
+```
+
+Above are injected by CircleCI or prepare deployment Jenkins from somewhere.
+
+ 

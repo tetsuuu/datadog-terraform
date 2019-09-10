@@ -39,6 +39,10 @@ Have to be managed by common resource on which strategies.
 ## Key management
 
 ```hcl-terraform
+terraform {
+  required_version = "0.12.5"
+}
+
 provider "datadog" {
   api_key = "${var.datadog_api_key}"
   app_key = "${var.datadog_app_key}"

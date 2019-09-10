@@ -74,7 +74,7 @@ resource "datadog_dashboard" "project_enphoto" {
 
     timeseries_definition {
       show_legend = false
-      title       = "enphoto-prod-web apache processes"]
+      title       = "enphoto-prod-web apache processes"
 
       request {
         display_type = "area"

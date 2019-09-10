@@ -1,5 +1,4 @@
 resource "datadog_dashboard" "project_enphoto" {
-    id           = "7iy-bfc-ivi"
     is_read_only = false
     layout_type  = "ordered"
     notify_list  = []

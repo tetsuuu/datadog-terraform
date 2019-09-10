@@ -298,4 +298,53 @@ resource "datadog_dashboard" "project_enphoto" {
       }
     }
   }
+
+  widget {
+
+    timeseries_definition {
+      show_legend = false
+      title       = "Avg of aws.rds.cpuutilization over name:enphoto-prod"
+
+      request {
+        display_type = "line"
+        q            = "avg:aws.rds.cpuutilization{name:enphoto-prod}"
+      }
+    }
+  }
+  widget {
+
+    timeseries_definition {
+      show_legend = false
+      title       = "Avg of aws.rds.freeable_memory over name:enphoto-prod"
+
+      request {
+        display_type = "line"
+        q            = "avg:aws.rds.freeable_memory{name:enphoto-prod}"
+      }
+    }
+  }
+  widget {
+
+    timeseries_definition {
+      show_legend = false
+      title       = "Avg of aws.rds.swap_usage over name:enphoto-prod"
+
+      request {
+        display_type = "line"
+        q            = "avg:aws.rds.swap_usage{name:enphoto-prod}"
+      }
+    }
+  }
+  widget {
+
+    timeseries_definition {
+      show_legend = false
+      title       = "Avg of aws.rds.database_connections over name:enphoto-prod"
+
+      request {
+        display_type = "line"
+        q            = "avg:aws.rds.database_connections{name:enphoto-prod}"
+      }
+    }
+  }
 }

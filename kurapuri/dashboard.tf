@@ -246,4 +246,56 @@ resource "datadog_dashboard" "project_kurapuri" {
       }
     }
   }
+
+  widget {
+
+    timeseries_definition {
+      show_legend = false
+      title       = "Avg of aws.rds.cpuutilization over dbname:kurapuri"
+
+      request {
+        display_type = "line"
+        q            = "avg:aws.rds.cpuutilization{dbname:kurapuri}"
+      }
+    }
+  }
+
+  widget {
+
+    timeseries_definition {
+      show_legend = false
+      title       = "Avg of aws.rds.freeable_memory over dbname:kurapuri"
+
+      request {
+        display_type = "line"
+        q            = "avg:aws.rds.freeable_memory{dbname:kurapuri}"
+      }
+    }
+  }
+
+  widget {
+
+    timeseries_definition {
+      show_legend = false
+      title       = "Avg of aws.rds.swap_usage over dbname:kurapuri"
+
+      request {
+        display_type = "line"
+        q            = "avg:aws.rds.swap_usage{dbname:kurapuri}"
+      }
+    }
+  }
+
+  widget {
+
+    timeseries_definition {
+      show_legend = false
+      title       = "Avg of aws.rds.database_connections over dbname:kurapuri"
+
+      request {
+        display_type = "line"
+        q            = "avg:aws.rds.database_connections{dbname:kurapuri}"
+      }
+    }
+  }
 }

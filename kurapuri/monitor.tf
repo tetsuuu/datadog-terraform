@@ -58,3 +58,18 @@ resource "datadog_monitor" "cloudfront_5xx_count" {
   timeout_h           = 0
   type                = "metric alert"
 }
+
+resource "datadog_monitor" "rds_connection_limit" {
+  message             = "@slack-alert_kurapuri"
+  name                = "kurapuri rds connection limit"
+  new_host_delay      = 300
+  no_data_timeframe   = 0
+  query               = "avg(last_5m):avg:aws.rds.database_connections{dbname:kurapuri} > 600"
+  require_full_window = true
+  thresholds          = {
+    "critical" = "600.0"
+    "warning"  = "550.0"
+  }
+  timeout_h           = 0
+  type                = "metric alert"
+}

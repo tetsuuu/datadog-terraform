@@ -9,24 +9,22 @@ Easy to deploy && change setting.
 .
 ├── enphoto
 │   ├── main.tf
-│   ├── dadabase.tf
-│   ├── webserver.tf
-│   └── outline.tf
+│   ├── dashboard.tf
+│   └── monitor.tf
 ├── kurapuri
 │   ├── main.tf
-│   ├── dadabase.tf
-│   ├── webserver.tf
-│   └── outline.tf
-├── kurapuri
+│   ├── dashboard.tf
+│   └── monitor.tf
+├── hogehoeg
 │   ├── main.tf
-│   ├── dadabase.tf
-│   ├── webserver.tf
-│   └── outline.tf
-├── hogehoge
+│   ├── dashboard.tf
+│   └── monitor.tf
+├── message
 │   ├── event_warning.tpl
 │   ├── event_critical.tpl
 │   ├── metric_warning.tpl
 │   └── metric_critical.tpl
+├── users.tf
 └── common.tfvars
 ```
 
@@ -51,4 +49,10 @@ provider "datadog" {
 
 Above are injected by CircleCI or prepare deployment Jenkins from somewhere.
 
- 
+## Prepare backend
+
+```shell script
+cd $service_dir
+../prep_backend.sh -a $service_name -s $stage >> main.tf
+```
+

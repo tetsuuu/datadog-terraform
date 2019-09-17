@@ -1,0 +1,14 @@
+{
+    "config":{
+        "enphoto":{
+            "aws_network_type":"maintenance",
+            "environment":"production",
+            "state_bucket":"ek-sandbox-poc",
+        },
+        "kurapuri":{
+            "aws_network_type":"maintenance",
+            "environment":"production",
+            "state_bucket":"ek-sandbox-poc"
+        }
+    }
+}

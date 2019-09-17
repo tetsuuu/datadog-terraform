@@ -1,0 +1,63 @@
+pipeline {
+    agent any
+    environment {
+        SERVICE_NAME = "${params.SERVICE}"
+        AWS_ACCOUNT = sh (script:"aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
+        AWS_REGION = sh (script:"curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/[a-z]\$//g'", returnStdout: true).trim()
+        TERRAFORM_PATH = tool(name: 'terraform-0.12.5', type: 'org.jenkinsci.plugins.terraform.TerraformInstallation')
+        PATH = "${TERRAFORM_PATH}:$PATH"
+        PRODUCT_NAME = SERVICE_NAME.toLowerCase()
+    }
+
+    options {
+        ansiColor('xterm')
+    }
+
+    stages {
+        stage('Initialize'){
+            steps {
+                dir("${PRODUCT_NAME}") {
+                    script {
+                        configs = readJSON file: "../build/config.json"
+                        config = configs.config."${AWS_ACCOUNT}"
+                        aws_network_type = config.aws_network_type
+                        state_bucket = config.state_bucket
+                        environment = config.environment
+                        sh "terraform -v"
+                        if (fileExists(".terraform/terraform.tfstate")) {
+                            sh "rm -rf .terraform/terraform.tfstate"
+                        }
+                        if (fileExists("status")) {
+                            sh "rm status"
+                        }
+                        sh "../prep_backend.sh -b ${state_bucket} -a ${aws_network_type} -s ${environment} >> main.tf"
+                        // ref: https://qiita.com/shingo_kawahara/items/393f3723045644572a85
+                        sh "echo \"variable \"api_key\" { default = ${DD_API_KEY}}\" >> main.tf\"
+                        sh "echo \"variable \"app_key\" { default = ${DD_APP_KEY}}\" >> main.tf\"
+                        sh "terraform init"
+                    }
+                }
+            }
+        }
+
+        stage('Plan'){
+            steps {
+                dir("${PRODUCT_NAME}") {
+                    script {
+                        sh "set +e; terraform plan -out=plan.out -detailed-exitcode; echo \$? > status"
+                        apply = false
+                        sync = false
+                        def exitCode = readFile('status').trim()
+                        echo "Terraform Plan Exit Code: ${exitCode}"
+                        if (exitCode == "0") {
+                            currentBuild.result = 'SUCCESS'
+                        }
+                        if (exitCode == "1") {
+                            currentBuild.result = 'FAILURE'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

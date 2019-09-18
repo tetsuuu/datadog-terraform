@@ -2,8 +2,6 @@ pipeline {
     agent any
     environment {
         SERVICE_NAME = "${params.SERVICE}"
-        AWS_ACCOUNT = sh (script:"aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
-        AWS_REGION = sh (script:"curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/[a-z]\$//g'", returnStdout: true).trim()
         TERRAFORM_PATH = tool(name: 'terraform-0.12.5', type: 'org.jenkinsci.plugins.terraform.TerraformInstallation')
         PATH = "${TERRAFORM_PATH}:$PATH"
         PRODUCT_NAME = SERVICE_NAME.toLowerCase()
@@ -25,21 +23,22 @@ pipeline {
                 dir("${PRODUCT_NAME}") {
                     script {
                         configs = readJSON file: "../build/config.json"
-                        config = configs.config."${SERVICE_NAME}"
-                        aws_network_type = config.aws_network_type
+                        config = configs.config."${PRODUCT_NAME}"
                         state_bucket = config.state_bucket
                         environment = config.environment
                         sh "terraform -v"
                         if (fileExists(".terraform/terraform.tfstate")) {
-                            sh "rm -rf .terraform/*"
+                            sh "rm -rf .terraform/terraform.tfstate"
                         }
                         if (fileExists("status")) {
-                            sh "rm status"
+                            sh "rm -f status"
                         }
-                        sh "../prep_backend.sh -b ${state_bucket} -a ${aws_network_type} -s ${environment} >> main.tf"
-                        // ref: https://qiita.com/shingo_kawahara/items/393f3723045644572a85
-                        sh "echo \"variable \"api_key\" { default = ${DD_API_KEY}}\" >> main.tf\"
-                        sh "echo \"variable \"app_key\" { default = ${DD_APP_KEY}}\" >> main.tf\"
+                        if (fileExists("main.tf")) {
+                            sh "rm -f main.tf"
+                        }
+                        sh "aws s3 cp s3://${state_bucket}/resource/main.tf ./"
+                        sh "chmod +x ../prep_backend.sh"
+                        sh "../prep_backend.sh -b ${state_bucket} -a ${PRODUCT_NAME} -s ${environment} >> main.tf"
                         sh "terraform init"
                     }
                 }
@@ -63,12 +62,12 @@ pipeline {
                         }
                         if (exitCode == "2") {
                             stash name: "plan", includes: "plan.out"
-                            build job: 'slack_build_notify', parameters: [string(name: 'build_status', value: "SUCCESS"), string(name: 'message', value: "[${AWS_REGION}] ${SERVICE_NAME} for ${aws_network_type} waiting for Infra deployment. (#${env.BUILD_NUMBER}).\n${env.BUILD_URL}")]
+                            build job: 'slack_build_notify', parameters: [string(name: 'build_status', value: "SUCCESS"), string(name: 'message', value: "${SERVICE_NAME} for ${environment} waiting for Datadog deployment. (#${env.BUILD_NUMBER}).\n${env.BUILD_URL}")]
                             try {
                                 input message: 'Apply Plan?', ok: 'Apply'
                                 apply = true
                             } catch (err) {
-                                build job: 'slack_build_notify', parameters: [string(name: 'build_status', value: "FAILED"), string(name: 'message', value: "[${AWS_REGION}] ${SERVICE_NAME} for ${aws_network_type} Infra deployment discarded.(#${env.BUILD_NUMBER})")]
+                                build job: 'slack_build_notify', parameters: [string(name: 'build_status', value: "FAILED"), string(name: 'message', value: "${SERVICE_NAME} for ${environment} Datadog deployment discarded.(#${env.BUILD_NUMBER})")]
                                 apply = false
                                 sync = false
                                 currentBuild.result = 'UNSTABLE'
@@ -95,9 +94,9 @@ pipeline {
                         }
                         def applyExitCode = readFile('status.apply').trim()
                         if (applyExitCode == "0") {
-                            build job: 'slack_build_notify', parameters: [string(name: 'build_status', value: "SUCCESS"), string(name: 'message', value: "[${AWS_REGION}] ${SERVICE_NAME} for ${aws_network_type} Infra deployment (#${env.BUILD_NUMBER}) has been deployed.")]
+                            build job: 'slack_build_notify', parameters: [string(name: 'build_status', value: "SUCCESS"), string(name: 'message', value: "${SERVICE_NAME} for ${environment} Datadog deployment (#${env.BUILD_NUMBER}) has been deployed.")]
                         } else {
-                            build job: 'slack_build_notify', parameters: [string(name: 'build_status', value: "FAILED"), string(name: 'message', value: "[${AWS_REGION}] ${SERVICE_NAME} for ${aws_network_type} Infra deployment (#${env.BUILD_NUMBER}) has failed.\n${env.BUILD_URL}")]
+                            build job: 'slack_build_notify', parameters: [string(name: 'build_status', value: "FAILED"), string(name: 'message', value: "${SERVICE_NAME} for ${environment} Datadog deployment (#${env.BUILD_NUMBER}) has failed.\n${env.BUILD_URL}")]
                         }
                     }
                 }

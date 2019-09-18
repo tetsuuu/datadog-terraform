@@ -2,8 +2,6 @@ pipeline {
     agent any
     environment {
         SERVICE_NAME = "${params.SERVICE}"
-        AWS_ACCOUNT = sh (script:"aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
-        AWS_REGION = sh (script:"curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/[a-z]\$//g'", returnStdout: true).trim()
         TERRAFORM_PATH = tool(name: 'terraform-0.12.5', type: 'org.jenkinsci.plugins.terraform.TerraformInstallation')
         PATH = "${TERRAFORM_PATH}:$PATH"
         PRODUCT_NAME = SERVICE_NAME.toLowerCase()
@@ -19,8 +17,7 @@ pipeline {
                 dir("${PRODUCT_NAME}") {
                     script {
                         configs = readJSON file: "../build/config.json"
-                        config = configs.config."${AWS_ACCOUNT}"
-                        aws_network_type = config.aws_network_type
+                        config = configs.config."${PRODUCT_NAME}"
                         state_bucket = config.state_bucket
                         environment = config.environment
                         sh "terraform -v"
@@ -34,7 +31,7 @@ pipeline {
                             sh "rm status"
                         }
                         sh "aws s3 cp s3://${state_bucket}/resource/main.tf ./"
-                        sh "../prep_backend.sh -b ${state_bucket} -a ${aws_network_type} -s ${environment} >> main.tf"
+                        sh "../prep_backend.sh -b ${state_bucket} -a ${PRODUCT_NAME} -s ${environment} >> main.tf"
                         sh "terraform init"
                     }
                 }

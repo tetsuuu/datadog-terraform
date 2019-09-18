@@ -31,7 +31,8 @@ pipeline {
                             sh "rm -f main.tf"
                         }
                         sh "aws s3 cp s3://${state_bucket}/resource/main.tf ./"
-                        sh "set +e; ../prep_backend.sh -b ${state_bucket} -a ${PRODUCT_NAME} -s ${environment} >> main.tf"
+                        sh "chmod +x ../prep_backend.sh"
+                        sh "../prep_backend.sh -b ${state_bucket} -a ${PRODUCT_NAME} -s ${environment} >> main.tf"
                         sh "terraform init"
                     }
                 }

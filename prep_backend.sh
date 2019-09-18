@@ -9,7 +9,7 @@ terraform {
   backend "s3" {
     bucket = "${BUCKET}"
     key    = "datadog/${ACCOUNT}/${STAGE}/terraform.tfstate"
-    region = "ap-northeast-1"
+    region = "us-east-1"
   }
 }
 EOS

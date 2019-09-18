@@ -30,10 +30,11 @@ pipeline {
                         if (fileExists("status")) {
                             sh "rm status"
                         }
+                        if (fileExists("main.tf")) {
+                            sh "rm status"
+                        }
+                        sh "aws s3 cp s3://${state_bucket}/resource/main.tf ./"
                         sh "../prep_backend.sh -b ${state_bucket} -a ${aws_network_type} -s ${environment} >> main.tf"
-                        // ref: https://qiita.com/shingo_kawahara/items/393f3723045644572a85
-                        sh "echo \"variable \"api_key\" { default = ${DD_API_KEY}}\" >> main.tf\"
-                        sh "echo \"variable \"app_key\" { default = ${DD_APP_KEY}}\" >> main.tf\"
                         sh "terraform init"
                     }
                 }

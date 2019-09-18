@@ -25,10 +25,10 @@ pipeline {
                             sh "rm -rf .terraform/terraform.tfstate"
                         }
                         if (fileExists("status")) {
-                            sh "rm status"
+                            sh "rm -f status"
                         }
                         if (fileExists("main.tf")) {
-                            sh "rm status"
+                            sh "rm -f main.tf"
                         }
                         sh "aws s3 cp s3://${state_bucket}/resource/main.tf ./"
                         sh "../prep_backend.sh -b ${state_bucket} -a ${PRODUCT_NAME} -s ${environment} >> main.tf"
